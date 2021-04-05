@@ -12,10 +12,6 @@ export class GraphqlLambdaCdkStack extends cdk.Stack {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }
     });
 
-    const lambdaARole = new iam.Role(this, 'LambdaRole', {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
     const fn = new lambdaNode.NodejsFunction(this, 'graphql', {
       entry: 'src/graphql.js',
       handler: 'graphqlHandler',
@@ -24,10 +20,10 @@ export class GraphqlLambdaCdkStack extends cdk.Stack {
       }
     });
 
+    table.grantReadWriteData(fn);
+
     const gateway = new apigateway.LambdaRestApi(this, 'gateway', {
       handler: fn,
     });
-
-    table.grantReadWriteData(fn);
   }
 }
