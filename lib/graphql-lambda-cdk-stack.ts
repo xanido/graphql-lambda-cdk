@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as lambda from '@aws-cdk/aws-lambda';
 import * as lambdaNode from '@aws-cdk/aws-lambda-nodejs';
-import * as iam from '@aws-cdk/aws-iam';
 import * as apigateway from '@aws-cdk/aws-apigateway';
 
 export class GraphqlLambdaCdkStack extends cdk.Stack {
@@ -13,11 +13,13 @@ export class GraphqlLambdaCdkStack extends cdk.Stack {
     });
 
     const fn = new lambdaNode.NodejsFunction(this, 'graphql', {
-      entry: 'src/graphql.js',
+      entry: 'src/graphql.ts',
       handler: 'graphqlHandler',
       environment: {
         TABLE: table.tableName,
-      }
+      },
+      runtime: lambda.Runtime.NODEJS_12_X,
+      timeout: cdk.Duration.seconds(10),
     });
 
     table.grantReadWriteData(fn);
