@@ -1,0 +1,36 @@
+{
+  "name": "graphql-lambda-cdk",
+  "version": "0.1.0",
+  "bin": {
+    "graphql-lambda-cdk": "bin/graphql-lambda-cdk.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "1.96.0",
+    "@aws-cdk/aws-apigateway": "^1.96.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.96.0",
+    "@types/jest": "^26.0.10",
+    "@types/node": "10.17.27",
+    "aws-cdk": "1.96.0",
+    "esbuild": "0",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-dynamodb": "^1.96.0",
+    "@aws-cdk/aws-iam": "^1.96.0",
+    "@aws-cdk/core": "1.96.0",
+    "apollo-server-lambda": "^2.22.2",
+    "aws-sdk": "^2.879.0",
+    "graphql": "^15.5.0",
+    "source-map-support": "^0.5.16",
+    "uuid": "^8.3.2"
+  }
+}
