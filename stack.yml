@@ -1,0 +1,385 @@
+yarn run v1.22.10
+$ cdk synth
+Resources:
+  DataTable447BC44E:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/DataTable/Resource
+  graphqlServiceRole198E10E5:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/graphql/ServiceRole/Resource
+  graphqlServiceRoleDefaultPolicyBB98ACB8:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DataTable447BC44E
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: graphqlServiceRoleDefaultPolicyBB98ACB8
+      Roles:
+        - Ref: graphqlServiceRole198E10E5
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/graphql/ServiceRole/DefaultPolicy/Resource
+  graphqlB2825E28:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameterse1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7S3Bucket521D3F27
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameterse1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7S3VersionKey83F23753
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameterse1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7S3VersionKey83F23753
+      Role:
+        Fn::GetAtt:
+          - graphqlServiceRole198E10E5
+          - Arn
+      Environment:
+        Variables:
+          TABLE:
+            Ref: DataTable447BC44E
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Handler: index.graphqlHandler
+      Runtime: nodejs12.x
+      Timeout: 10
+    DependsOn:
+      - graphqlServiceRoleDefaultPolicyBB98ACB8
+      - graphqlServiceRole198E10E5
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/graphql/Resource
+      aws:asset:path: asset.e1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7
+      aws:asset:property: Code
+  gatewayB15F83BA:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: gateway
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Resource
+  gatewayCloudWatchRole95D07D64:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/CloudWatchRole/Resource
+  gatewayAccountCD2885BD:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - gatewayCloudWatchRole95D07D64
+          - Arn
+    DependsOn:
+      - gatewayB15F83BA
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Account
+  gatewayDeploymentB2283F36595dd37d4282b04baa25e257466f5490:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: gatewayB15F83BA
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - gatewayproxyANY8890E765
+      - gatewayproxy0BE09768
+      - gatewayANY1507BFB7
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Deployment/Resource
+  gatewayDeploymentStageprodDC6C730C:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: gatewayB15F83BA
+      DeploymentId:
+        Ref: gatewayDeploymentB2283F36595dd37d4282b04baa25e257466f5490
+      StageName: prod
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/DeploymentStage.prod/Resource
+  gatewayproxy0BE09768:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - gatewayB15F83BA
+          - RootResourceId
+      PathPart: "{proxy+}"
+      RestApiId:
+        Ref: gatewayB15F83BA
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/{proxy+}/Resource
+  gatewayproxyANYApiPermissionGraphqlLambdaCdkStackgatewayCD8CEAC9ANYproxy5D1466A7:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - graphqlB2825E28
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:ap-southeast-2:167141582826:"
+            - Ref: gatewayB15F83BA
+            - /
+            - Ref: gatewayDeploymentStageprodDC6C730C
+            - /*/*
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/{proxy+}/ANY/ApiPermission.GraphqlLambdaCdkStackgatewayCD8CEAC9.ANY..{proxy+}
+  gatewayproxyANYApiPermissionTestGraphqlLambdaCdkStackgatewayCD8CEAC9ANYproxy075E072D:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - graphqlB2825E28
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:ap-southeast-2:167141582826:"
+            - Ref: gatewayB15F83BA
+            - /test-invoke-stage/*/*
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/{proxy+}/ANY/ApiPermission.Test.GraphqlLambdaCdkStackgatewayCD8CEAC9.ANY..{proxy+}
+  gatewayproxyANY8890E765:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Ref: gatewayproxy0BE09768
+      RestApiId:
+        Ref: gatewayB15F83BA
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - graphqlB2825E28
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/{proxy+}/ANY/Resource
+  gatewayANYApiPermissionGraphqlLambdaCdkStackgatewayCD8CEAC9ANY7B82A712:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - graphqlB2825E28
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:ap-southeast-2:167141582826:"
+            - Ref: gatewayB15F83BA
+            - /
+            - Ref: gatewayDeploymentStageprodDC6C730C
+            - /*/
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/ANY/ApiPermission.GraphqlLambdaCdkStackgatewayCD8CEAC9.ANY..
+  gatewayANYApiPermissionTestGraphqlLambdaCdkStackgatewayCD8CEAC9ANY8C5442E1:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - graphqlB2825E28
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:ap-southeast-2:167141582826:"
+            - Ref: gatewayB15F83BA
+            - /test-invoke-stage/*/
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/ANY/ApiPermission.Test.GraphqlLambdaCdkStackgatewayCD8CEAC9.ANY..
+  gatewayANY1507BFB7:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Fn::GetAtt:
+          - gatewayB15F83BA
+          - RootResourceId
+      RestApiId:
+        Ref: gatewayB15F83BA
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - graphqlB2825E28
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/gateway/Default/ANY/Resource
+  cdnHeaderPolicy94F6C20A:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        CookiesConfig:
+          CookieBehavior: none
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers:
+            - Accept
+        Name: GraphqlLambdaCdkStackcdnHeaderPolicy36719A5E
+        QueryStringsConfig:
+          QueryStringBehavior: none
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/cdnHeaderPolicy/Resource
+  cdnE31FB0B1:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - PUT
+            - PATCH
+            - POST
+            - DELETE
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+          OriginRequestPolicyId:
+            Ref: cdnHeaderPolicy94F6C20A
+          TargetOriginId: GraphqlLambdaCdkStackcdnOrigin16C32BAD5
+          ViewerProtocolPolicy: redirect-to-https
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins:
+          - CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            DomainName:
+              Fn::Join:
+                - ""
+                - - Ref: gatewayB15F83BA
+                  - .execute-api.ap-southeast-2.
+                  - Ref: AWS::URLSuffix
+            Id: GraphqlLambdaCdkStackcdnOrigin16C32BAD5
+            OriginPath: /prod
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/cdn/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAAE21Ry07DMBD8lt6dLREPiRulFSegVeAHHHtb3MZ28IMSWf53bKcpPfS0s6Pd9cy4hscHuJk90aOtGD/MA9MGIXw4yg6kQau9YUgW1qJL3E6oHVlqZZ3xzJHlVm2ooRIdmtysvet9oafNSPLhwAdFpeYthE/adpgnCoiko7LltFKa497CeykvXjEntCKCSgiNHhdK3ehOsKE8XFAk9raiWZ2FIvJ0EEIaOd/J42iksDZ1SVIvdtThkQ4QXst4kusWvTgpn+CCMe2VIyvsOz1IVMXaRZcTKdpGMJl+pjYpNfp3OAd4EQl5Q/eleaZGFAnrtOdbo5WDsDYipdzgt09C/u1eo1ci/YNo/eTxso8xkhwq7O38p76D+h7q2d4KUZlkSUiEZqx/3W9HTwECAAA=
+    Metadata:
+      aws:cdk:path: GraphqlLambdaCdkStack/CDKMetadata/Default
+Parameters:
+  AssetParameterse1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7S3Bucket521D3F27:
+    Type: String
+    Description: S3 bucket for asset "e1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7"
+  AssetParameterse1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7S3VersionKey83F23753:
+    Type: String
+    Description: S3 key for asset version "e1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7"
+  AssetParameterse1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7ArtifactHash9B44C738:
+    Type: String
+    Description: Artifact hash for asset "e1f63515c85e7f1b1c895a5a3668c056e8dd3256bee1169176168be484d9d0b7"
+Outputs:
+  gatewayEndpointDA8D204E:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: gatewayB15F83BA
+          - .execute-api.ap-southeast-2.
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: gatewayDeploymentStageprodDC6C730C
+          - /
+
+Done in 3.45s.
